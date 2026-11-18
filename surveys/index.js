@@ -7,4 +7,5 @@ const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbysyu09M5KKJrQBo8D_-
 
 const SURVEY_INDEX = [
   "murbad-Anganwadi-solar-2026",
+  "malati-vaidya-solar-2026",
 ];
