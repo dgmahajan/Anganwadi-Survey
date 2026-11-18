@@ -8,13 +8,17 @@ let answers = {};
 function openCamera(onPhoto, onFail) {
   const ov = document.createElement('div');
   ov.className = 'cam-overlay';
-  ov.innerHTML = '<video autoplay playsinline muted></video>' +
-    '<div class="cam-bar"><button type="button" class="cam-cancel">रद्द करा</button>' +
-    '<button type="button" class="cam-shot">📷 फोटो घ्या</button></div>';
+  // Inline styles so the camera is always full-screen, even if the page CSS is old or cached
+  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:#000;z-index:99999;display:flex;flex-direction:column;';
+  ov.innerHTML = '<video autoplay playsinline muted style="flex:1;width:100%;min-height:0;object-fit:cover;background:#000;"></video>' +
+    '<div class="cam-bar" style="display:flex;gap:12px;padding:16px;background:#000;justify-content:space-between;">' +
+    '<button type="button" class="cam-cancel" style="flex:1;padding:16px;font-size:20px;border:none;border-radius:10px;background:#ddd;color:#222;">रद्द करा</button>' +
+    '<button type="button" class="cam-shot" style="flex:1;padding:16px;font-size:20px;border:none;border-radius:10px;background:#1a6b3a;color:#fff;font-weight:700;">📷 फोटो घ्या</button></div>';
   document.body.appendChild(ov);
+  document.body.style.overflow = 'hidden';
   const video = ov.querySelector('video');
   let stream = null;
-  const close = () => { if (stream) stream.getTracks().forEach(t => t.stop()); ov.remove(); };
+  const close = () => { if (stream) stream.getTracks().forEach(t => t.stop()); ov.remove(); document.body.style.overflow = ''; };
   navigator.mediaDevices.getUserMedia({
     video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false
   }).then(st => { stream = st; video.srcObject = st; }).catch(() => { close(); onFail(); });
