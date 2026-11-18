@@ -10,7 +10,7 @@ window.SURVEYS.push({
   mobileOnce:  true,   // mobile number asked only the first time
   marathiOnly: true,   // no English text anywhere in this survey
   name:      "मालती वैद्य स्मृती ट्रस्ट<br>ऑफ-ग्रिड सौर सर्वेक्षण",
-  sheet_tab: "Malati Vaidya off grid battery less solar 2026",
+  sheet_tab: "Anganwadi Battery less Survey 1126",
   start:     "2026-11-18",   // testing from today; real start 20-11-2026
   end:       "2026-12-31",   // PLACEHOLDER
 
