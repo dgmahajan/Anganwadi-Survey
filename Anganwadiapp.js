@@ -4,6 +4,32 @@ window.SURVEYS = window.SURVEYS || [];
 let currentSurvey = null;
 let answers = {};
 
+// ── In-page camera (no file picker): live view + capture button ──
+function openCamera(onPhoto, onFail) {
+  const ov = document.createElement('div');
+  ov.className = 'cam-overlay';
+  ov.innerHTML = '<video autoplay playsinline muted></video>' +
+    '<div class="cam-bar"><button type="button" class="cam-cancel">रद्द करा</button>' +
+    '<button type="button" class="cam-shot">📷 फोटो घ्या</button></div>';
+  document.body.appendChild(ov);
+  const video = ov.querySelector('video');
+  let stream = null;
+  const close = () => { if (stream) stream.getTracks().forEach(t => t.stop()); ov.remove(); };
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false
+  }).then(st => { stream = st; video.srcObject = st; }).catch(() => { close(); onFail(); });
+  ov.querySelector('.cam-cancel').onclick = close;
+  ov.querySelector('.cam-shot').onclick = () => {
+    if (!video.videoWidth) return;
+    const sc = Math.min(1, 1280 / video.videoWidth);
+    const c = document.createElement('canvas');
+    c.width = Math.round(video.videoWidth * sc); c.height = Math.round(video.videoHeight * sc);
+    c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+    const url = c.toDataURL('image/jpeg', 0.72);
+    close(); onPhoto(url);
+  };
+}
+
 // ── Load survey files dynamically ────────────────────────────
 async function loadSurveyFiles() {
   for (const id of SURVEY_INDEX) {
@@ -431,6 +457,17 @@ function buildQuestions(survey) {
       block.appendChild(uploadLabel);
       block.appendChild(previewWrap);
       block.appendChild(note);
+      if (currentSurvey && currentSurvey.liveCamera && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        uploadLabel.addEventListener('click', ev => {
+          ev.preventDefault();                       // do not open the file picker
+          openCamera(url => {
+            answers[q.id] = url;
+            previewImg.src = url;
+            previewWrap.style.display = 'inline-block';
+            uploadLabel.style.display = 'none';
+          }, () => fileInput.click());               // camera blocked/unavailable -> fall back to picker
+        });
+      }
     }
     container.appendChild(block);
   });
@@ -442,6 +479,8 @@ function prefillAnswers(prior) {
   currentSurvey.questions.forEach(q => {
     const raw = prior[q.id];
     if (raw === undefined || raw === null || raw === '') return;
+    // A photo that changes every visit (not once-only) is never carried over: a fresh one is always required.
+    if (q.type === 'photo' && !q.once) return;
     const val = String(raw).trim();
     answers[q.id] = val;
     if (q.type === 'yesno' || q.type === 'yesnodk' || q.type === 'choice') {
