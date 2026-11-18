@@ -380,6 +380,7 @@ function buildQuestions(survey) {
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
       fileInput.accept = 'image/*';
+      if (currentSurvey && currentSurvey.cameraOnly) fileInput.setAttribute('capture', 'environment');   // open the camera directly, not the file picker
       fileInput.id = 'inp-' + q.id;
       fileInput.style.cssText = 'visibility:hidden;position:absolute;width:0;height:0;';
 
