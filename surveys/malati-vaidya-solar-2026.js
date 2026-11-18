@@ -2,6 +2,7 @@
 window.SURVEYS = window.SURVEYS || [];
 window.SURVEYS.push({
   id:        "malati-vaidya-solar-2026",
+  cameraOnly:  true,   // photo buttons open the camera directly
   geoCheck:    true,   // GPS check at the door before the questions
   geo:         { radius: 50, goodAcc: 10, maxWait: 60 },
   phoneConfirm: true,  // show Sevika number (last 4 digits) to confirm
