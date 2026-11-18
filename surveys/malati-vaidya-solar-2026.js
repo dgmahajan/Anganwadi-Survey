@@ -2,13 +2,14 @@
 window.SURVEYS = window.SURVEYS || [];
 window.SURVEYS.push({
   id:        "malati-vaidya-solar-2026",
+  liveCamera:  true,   // in-page camera view (works where the phone ignores "open camera")
   cameraOnly:  true,   // photo buttons open the camera directly
   geoCheck:    true,   // GPS check at the door before the questions
   geo:         { radius: 50, goodAcc: 10, maxWait: 60 },
   phoneConfirm: true,  // show Sevika number (last 4 digits) to confirm
   mobileOnce:  true,   // mobile number asked only the first time
   marathiOnly: true,   // no English text anywhere in this survey
-  name:      "मालती वैद्य स्मृती ट्रस्ट – ऑफ-ग्रिड बॅटरीविरहित सौर यंत्रणा स्थिती सर्वेक्षण",
+  name:      "मालती वैद्य स्मृती ट्रस्ट<br>ऑफ-ग्रिड सौर सर्वेक्षण",
   sheet_tab: "Malati Vaidya off grid battery less solar 2026",
   start:     "2026-11-18",   // testing from today; real start 20-11-2026
   end:       "2026-12-31",   // PLACEHOLDER
@@ -66,7 +67,11 @@ window.SURVEYS.push({
   questions: [
     { id: "q0", text: "सर्व दिवे चालतात का?", type: "yesno" },
     { id: "q1", text: "एकूण किती दिवे बसवलेले आहेत?", type: "choice", options: [1, 2, 3, 4] },
+    { id: "q10", text: "त्यापैकी किती दिवे चालत नाहीत?", type: "choice", options: [1, 2, 3, 4],
+      showIf: { id: "q0", value: "no" } },
     { id: "q2", text: "दोन्ही छताचे पंखे चालतात का?", type: "yesno" },
+    { id: "q11", text: "किती छताचे पंखे चालत नाहीत?", type: "choice", options: [1, 2],
+      showIf: { id: "q2", value: "no" } },
     { id: "q3", text: "तुमच्या अंगणवाडीत टीव्ही आहे का?", type: "yesno" },
     { id: "q4", text: "टीव्ही विजेला जोडल्यावर चालतो का?", type: "yesno",
       showIf: { id: "q3", value: "yes" } },
@@ -77,5 +82,6 @@ window.SURVEYS.push({
     { id: "q7", text: "इन्व्हर्टरचा फोटो काढा. इन्व्हर्टरला डिस्प्ले असल्यास, डिस्प्लेवरील आकडे स्पष्ट वाचता येतील असा फोटो काढा.", type: "photo", optional: false },
     { id: "q8", text: "अंगणवाडीवर जिथे कुठे अंगणवाडीचे नाव लिहिलेले आहे, त्याचा स्पष्ट फोटो काढा. नाव वाचता आले पाहिजे.",
       type: "photo", optional: false, once: true },
+    { id: "q9", text: "या संदर्भात तुमची काही तक्रार किंवा सूचना असल्यास थोडक्यात लिहा.", type: "text", optional: true },
   ],
 });
