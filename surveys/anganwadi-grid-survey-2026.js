@@ -8,6 +8,8 @@ window.SURVEYS.push({
   geo:         { radius: 50, goodAcc: 10, maxWait: 60 },
   phoneConfirm: true,  // show Sevika number (last 4 digits) to confirm
   mobileOnce:  true,   // mobile number asked only the first time
+  unlisted:    true,   // not on the shared list; opens only via ?s=anganwadi-grid-survey-2026
+  dynamicColumns: true, // one sheet column per question id (needs the 2026-11-24 Apps Script)
   marathiOnly: true,   // no English text anywhere in this survey
   name:      "अंगणवाडी वीज जोडणी सर्वेक्षण",
   sheet_tab: "Anganwadi Power Grid Survey 1126",
