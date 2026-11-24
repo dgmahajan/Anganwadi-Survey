@@ -60,7 +60,15 @@ function isActive(survey) {
 // ── Main init ─────────────────────────────────────────────────
 async function initApp() {
   await loadSurveyFiles();
-  const active = (window.SURVEYS || []).filter(isActive);
+  let active = (window.SURVEYS || []).filter(isActive);
+  // Direct link: ?s=<survey id> opens only that survey, with no choice screen.
+  const wanted = new URLSearchParams(location.search).get('s');
+  if (wanted) {
+    const hit = active.filter(x => x.id === wanted);
+    if (hit.length) { showSurvey(hit[0]); return; }
+  }
+  // Surveys marked unlisted:true never appear on the shared link; they open only through their own ?s= link.
+  active = active.filter(x => !x.unlisted);
   if (active.length === 0) {
     showNoSurveys();
   } else if (active.length === 1) {
@@ -598,7 +606,10 @@ async function submitSurvey(e) {
     const block = document.getElementById('block-' + q.id);
     if (!block || block.classList.contains('hidden') || q.optional || (q.type === 'photo' && q.optional !== false)) continue;
     if (!answers[q.id] && answers[q.id] !== 0) {
-      alert('कृपया सर्व प्रश्नांची उत्तरे द्या.' + (MR() ? '' : '\nPlease answer all required questions.')); return;
+      const qt = String(q.text || '').replace(/<[^>]+>/g, '').slice(0, 70);
+      block.scrollIntoView({behavior: 'smooth', block: 'center'});
+      block.style.outline = '3px solid #d32f2f';
+      alert('कृपया सर्व प्रश्नांची उत्तरे द्या.\n\nउत्तर राहिलेला प्रश्न:\n' + qt + '…' + (MR() ? '' : '\nPlease answer all required questions.')); return;
     }
   }
   const school = currentSurvey.schools.find(s => s.udise === udise);
@@ -606,6 +617,8 @@ async function submitSurvey(e) {
     udise: school.udise, anganwadi_name: school.name, taluka: school.taluka,
     mobile, timestamp: new Date().toISOString(), sheet_tab: currentSurvey.sheet_tab, ...answers, ...(geoResult || {}),
     // Question headings for the Google Sheet (used only when the script creates a brand-new tab)
+    dynamic: !!currentSurvey.dynamicColumns,
+    question_ids: currentSurvey.questions.filter(q => q.column).map(q => q.id),
     column_headings: Object.fromEntries(currentSurvey.questions.filter(q => q.column).map(q => [q.id, q.column])),
   };
   const btn = document.getElementById('submit-btn');
