@@ -35,7 +35,7 @@ function openCamera(onPhoto, onFail) {
 }
 
 // A survey may carry its own submit_url; otherwise the shared SUBMIT_URL from surveys/index.js is used.
-function submitUrl() { return (currentSurvey && currentSurvey.submit_url) || SUBMIT_URL; }
+function submitUrl() { return SUBMIT_URL; }   // one shared address for every survey (a per-survey submit_url is ignored on purpose)
 
 // ── Load survey files dynamically ────────────────────────────
 async function loadSurveyFiles() {
@@ -73,7 +73,7 @@ async function initApp() {
       if (new URLSearchParams(location.search).get('debug') === '1')
         { const d = document.createElement('div');
           d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ffeb3b;color:#000;padding:10px;font:16px monospace;white-space:pre-wrap';
-          d.textContent = 'app 2026-11-24h\nsend to: ...' + submitUrl().slice(-14) + '\ndynamicColumns: ' + !!hit[0].dynamicColumns;
+          d.textContent = 'app 2026-11-24i\nsend to: ...' + submitUrl().slice(-14) + '\ndynamicColumns: ' + !!hit[0].dynamicColumns;
           document.body.appendChild(d); }
       return;
     }
