@@ -68,15 +68,7 @@ async function initApp() {
   const wanted = new URLSearchParams(location.search).get('s');
   if (wanted) {
     const hit = active.filter(x => x.id === wanted);
-    if (hit.length) {
-      showSurvey(hit[0]);
-      if (new URLSearchParams(location.search).get('debug') === '1')
-        { const d = document.createElement('div');
-          d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ffeb3b;color:#000;padding:10px;font:16px monospace;white-space:pre-wrap';
-          d.textContent = 'app 2026-11-24i\nsend to: ...' + submitUrl().slice(-14) + '\ndynamicColumns: ' + !!hit[0].dynamicColumns;
-          document.body.appendChild(d); }
-      return;
-    }
+    if (hit.length) { showSurvey(hit[0]); return; }
   }
   // Surveys marked unlisted:true never appear on the shared link; they open only through their own ?s= link.
   active = active.filter(x => !x.unlisted);
