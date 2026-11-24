@@ -34,6 +34,9 @@ function openCamera(onPhoto, onFail) {
   };
 }
 
+// A survey may carry its own submit_url; otherwise the shared SUBMIT_URL from surveys/index.js is used.
+function submitUrl() { return (currentSurvey && currentSurvey.submit_url) || SUBMIT_URL; }
+
 // ── Load survey files dynamically ────────────────────────────
 async function loadSurveyFiles() {
   for (const id of SURVEY_INDEX) {
@@ -348,7 +351,7 @@ async function checkMatch() {
   // Fetch prior data silently, then reveal everything at once
   let hasPrior = false;
   try {
-    const res  = await fetch(SUBMIT_URL + '?udise=' + u + '&tab=' + encodeURIComponent(currentSurvey.sheet_tab));
+    const res  = await fetch(submitUrl() + '?udise=' + u + '&tab=' + encodeURIComponent(currentSurvey.sheet_tab));
     const data = await res.json();
     if (data.submitted && data.prior) {
       hasPrior = true;
@@ -624,7 +627,7 @@ async function submitSurvey(e) {
   const btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'सादर होत आहे...';
   try {
-    await fetch(SUBMIT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    await fetch(submitUrl(), { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
 
     // Verify the record actually landed in the sheet
     btn.textContent = MR() ? 'तपासत आहे...' : 'तपासत आहे... / Verifying...';
@@ -632,7 +635,7 @@ async function submitSurvey(e) {
     for (let attempt = 0; attempt < 3; attempt++) {
       await new Promise(r => setTimeout(r, 2000));
       try {
-        const check = await fetch(SUBMIT_URL + '?udise=' + encodeURIComponent(udise) + '&tab=' + encodeURIComponent(currentSurvey.sheet_tab));
+        const check = await fetch(submitUrl() + '?udise=' + encodeURIComponent(udise) + '&tab=' + encodeURIComponent(currentSurvey.sheet_tab));
         const result = await check.json();
         if (result.submitted) { verified = true; break; }
       } catch(_) { /* retry */ }
