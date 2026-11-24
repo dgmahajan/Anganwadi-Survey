@@ -8,6 +8,7 @@ window.SURVEYS.push({
   geo:         { radius: 50, goodAcc: 10, maxWait: 60 },
   phoneConfirm: true,  // show Sevika number (last 4 digits) to confirm
   mobileOnce:  true,   // mobile number asked only the first time
+  submit_url:  "https://script.google.com/macros/s/AKfycbyBm19Ujj_VTrvqGqNtrfPHnnz3l88_k4xNrwUjHt0fIAinWY1NcAa04Cf6kQrOZjLXhA/exec",   // this survey only; the other surveys keep the shared address
   unlisted:    true,   // not on the shared list; opens only via ?s=anganwadi-grid-survey-2026
   dynamicColumns: true, // one sheet column per question id (needs the 2026-11-24 Apps Script)
   marathiOnly: true,   // no English text anywhere in this survey
