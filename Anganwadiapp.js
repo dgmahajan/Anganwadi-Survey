@@ -109,14 +109,22 @@ function showSurvey(survey) {
   const sorted = [...survey.schools].sort((a, b) => a.name.localeCompare(b.name, 'mr'));
   const udiseOpts = sorted.map(s => `<option value="${s.udise}">${s.udise}</option>`).join('');
   const nameOpts  = sorted.map(s => `<option value="${s.udise}">${s.name}</option>`).join('');
+  // Project -> sector -> Anganwadi: only when the survey's list carries project/sector for its schools
+  const hasGroups = survey.schools.some(x => x.project);
+  const uniq = arr => [...new Set(arr)].sort((a, b) => a.localeCompare(b, 'mr'));
+  const projOpts = hasGroups ? uniq(survey.schools.map(x => x.project || 'इतर')).map(p => `<option value="${p}">${p}</option>`).join('') : '';
 
   document.getElementById('app').innerHTML = `
     <div class="card">
       <div class="header"><h1>${survey.name}</h1><p>${survey.subtitle || ''}</p></div>
       ${survey.intro ? `<div class="intro-box"><div class="intro-title">${survey.intro.title}</div><ol>${survey.intro.steps.map(x => '<li>' + x + '</li>').join('')}</ol></div>` : ''}
       <form id="survey-form">
-        <label>अंगणवाडी क्रमांक निवडा *</label>
-        <select id="sel-udise"><option value="">-- अंगणवाडी क्रमांक निवडा --</option>${udiseOpts}</select>
+        ${hasGroups ? `<label>प्रकल्प निवडा *</label>
+        <select id="sel-project"><option value="">-- प्रकल्प निवडा --</option>${projOpts}</select>
+        <label style="margin-top:14px;">सेक्टर निवडा *</label>
+        <select id="sel-sector" disabled><option value="">-- आधी प्रकल्प निवडा --</option></select>` : ''}
+        <label${hasGroups ? ' style="margin-top:14px;"' : ''}>अंगणवाडी क्रमांक निवडा *</label>
+        <select id="sel-udise"${hasGroups ? ' disabled' : ''}><option value="">-- अंगणवाडी क्रमांक निवडा --</option>${udiseOpts}</select>
         <label style="margin-top:14px;">अंगणवाडीचे नाव निवडा *</label>
         <select id="sel-name"><option value="">-- अंगणवाडीचे नाव निवडा --</option>${nameOpts}</select>
         <div id="match-ok"    class="match-ok"    style="display:none;">✓ अंगणवाडी क्रमांक आणि अंगणवाडीचे नाव जुळते.</div>
@@ -148,6 +156,27 @@ function showSurvey(survey) {
       </form>
     </div>`;
 
+  if (hasGroups) {
+    const selP = document.getElementById('sel-project'), selS = document.getElementById('sel-sector');
+    const selU = document.getElementById('sel-udise'),   selN = document.getElementById('sel-name');
+    const fillSchools = () => {
+      const p = selP.value, sec = selS.value;
+      const list = (p && sec) ? sorted.filter(x => (x.project || 'इतर') === p && (x.sector || 'इतर') === sec) : [];
+      selU.innerHTML = '<option value="">-- अंगणवाडी क्रमांक निवडा --</option>' + list.map(x => `<option value="${x.udise}">${x.udise}</option>`).join('');
+      selN.innerHTML = '<option value="">-- अंगणवाडीचे नाव निवडा --</option>' + list.map(x => `<option value="${x.udise}">${x.name}</option>`).join('');
+      selU.disabled = selN.disabled = !(p && sec);
+      checkMatch();
+    };
+    selP.addEventListener('change', () => {
+      const p = selP.value;
+      const secs = p ? uniq(survey.schools.filter(x => (x.project || 'इतर') === p).map(x => x.sector || 'इतर')) : [];
+      selS.innerHTML = '<option value="">' + (p ? '-- सेक्टर निवडा --' : '-- आधी प्रकल्प निवडा --') + '</option>' + secs.map(x => `<option value="${x}">${x}</option>`).join('');
+      selS.disabled = !p;
+      fillSchools();
+    });
+    selS.addEventListener('change', fillSchools);
+    selN.disabled = true;
+  }
   document.getElementById('sel-udise').addEventListener('change', checkMatch);
   document.getElementById('sel-name').addEventListener('change', checkMatch);
   document.getElementById('survey-form').addEventListener('submit', submitSurvey);
@@ -400,6 +429,25 @@ function buildQuestions(survey) {
       inp.placeholder = `${q.min || 1} ते ${q.max || 99}`;
       inp.addEventListener('input', () => { answers[q.id] = inp.value; });
       block.appendChild(inp);
+    } else if (q.type === 'textdk') {
+      // Single-line entry (e.g. consumer number) plus a "don't know" tick box that stores the text "माहित नाही"
+      const inp = document.createElement('input');
+      inp.type = 'text'; inp.id = 'inp-' + q.id;
+      inp.inputMode = q.numeric ? 'numeric' : 'text';
+      inp.placeholder = 'येथे लिहा...';
+      inp.addEventListener('input', () => { answers[q.id] = inp.value.trim(); if (!answers[q.id]) delete answers[q.id]; });
+      block.appendChild(inp);
+      const lab = document.createElement('label');
+      lab.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:12px;font-size:18px;';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.id = 'dk-' + q.id; cb.style.cssText = 'width:26px;height:26px;';
+      cb.addEventListener('change', () => {
+        if (cb.checked) { inp.value = ''; inp.disabled = true; answers[q.id] = 'माहित नाही'; }
+        else { inp.disabled = false; delete answers[q.id]; }
+      });
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode('माहित नाही'));
+      block.appendChild(lab);
     } else if (q.type === 'text') {
       const ta = document.createElement('textarea');
       ta.id = 'inp-' + q.id;
@@ -557,6 +605,8 @@ async function submitSurvey(e) {
   const payload = {
     udise: school.udise, anganwadi_name: school.name, taluka: school.taluka,
     mobile, timestamp: new Date().toISOString(), sheet_tab: currentSurvey.sheet_tab, ...answers, ...(geoResult || {}),
+    // Question headings for the Google Sheet (used only when the script creates a brand-new tab)
+    column_headings: Object.fromEntries(currentSurvey.questions.filter(q => q.column).map(q => [q.id, q.column])),
   };
   const btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'सादर होत आहे...';
